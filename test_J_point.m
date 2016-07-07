@@ -1,11 +1,13 @@
 close all;
 clear all;
-load('data_mi.mat');
-d=data1(1:36000)';
+load('QuangHuy_140416_alice5.mat');
+d=data11';
 t=[0:length(d)-1]/200;
 
 %% filter baseline%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-[a b]=butter(7,[0.5 40]/100);
+a=[0.0045 0 -0.0316 0 0.0948 0 -0.1581 0 0.1581 0 -0.0948 0 0.0316 0 -0.0045];
+b=[1 -8.3628 32.2534 -76.6466 126.4775 -154.4349 144.4757 -105.2537 59.9475 -26.5513 8.9983 -2.2575 0.3957 -0.0437 0.0022];
+
 c = filtfilt(a,b,d);
 c=c/max(abs(c));
 c=c-mean(c);
@@ -60,29 +62,17 @@ left = find(diff([0 poss_reg])==1);
 right = find(diff([poss_reg 0])==-1);
 
 for i=1:length(left)
-    %detect R peak
-    [R_value(i) R_loc(i)] = max( c(left(i):right(i)) );
-    R_loc(i) = R_loc(i)-1+left(i); 
-    
     %detect J point
     J_loc(i)=right(i);          %J point is the end of QRS offset
     J_value(i)=c(J_loc(i));
-    
-    if i>1
-        %Measure
-        MB(i-1)=J_value(i-1)/J_value(i)*100;
-        MR(i-1)=J_value(i-1)/R_value(i-1)*100;
-    end
 end
 
 %% plot figure
- figure
- plot (t(1:length(c)),c);
- hold on;
- plot(t(J_loc),J_value, 'r^');
-
+figure
+plot (t(1:length(c)),c);
+hold on;
+plot(t(J_loc),J_value, 'r^');
 
 %% clear some veriable
-clear -regexp data x
-clear a b baseline h d h_HP h_LP max_h t thresh 
-
+%clear -regexp data x
+%clear a b baseline d h h_HP h_LP max_h t thresh 
