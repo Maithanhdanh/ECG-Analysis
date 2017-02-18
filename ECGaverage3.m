@@ -60,11 +60,7 @@ for i=1:length(left)
     [S_value(i) S_loc(i)] = min( c(left(i):right(i)) );
     S_loc(i) = S_loc(i)-1+left(i); % add offset
 
-    end
-   % R_value=R_value-mean(d);
-  %  Q_value=Q_value-mean(d);
- %   S_value=S_value-mean(d);
-%    d=d-mean(d);
+end
     
 %% there is no selective wave %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Q_loc=Q_loc(find(Q_loc~=0));
@@ -74,7 +70,7 @@ S_loc=S_loc(find(S_loc~=0));
 %% Heart Rate %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 hr=[];
 for i=1:length(R_loc)-1
-    hr=[hr R_loc(i+1)-R_loc(i)];
+    hr=[hr 60*sr*2/(R_loc(i+1)-R_loc(i))];
 end
 
 %subplot(3,1,3)

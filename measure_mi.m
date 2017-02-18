@@ -74,13 +74,13 @@ for j=1:2
         R_loc(i) = R_loc(i)-1+left(i); 
 
         %detect J point
-        J_loc(i)=right(i);          %J point is the end of QRS offset
+        J_loc(i)=right(i);          %J point is the QRS's offset
         J_value(i)=c(J_loc(i));
 
         if i>1
             %Measure
-            MB(j,i-1)=J_value(i-1)/J_value(i)*100;
-            MR(j,i-1)=J_value(i-1)/R_value(i-1)*100;
+            MB(j,i-1)=J_value(i-1)/J_value(i)*100;      %compare with baseline
+            MR(j,i-1)=J_value(i-1)/R_value(i-1)*100;    %compare with R peak
         end
     end
 end
