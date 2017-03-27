@@ -1,5 +1,4 @@
-
-function [c,R_value, R_loc, Q_value, Q_loc, S_value, S_loc, J_value, J_loc, T_value, T_loc, P_value, P_loc, RR, PR, QT, HRV, tqrs, trr, tpr, tqt,ST] = ecg_extraction(data,fs)
+function [c,R_value, R_loc, Q_value, Q_loc, S_value, S_loc, J_value, J_loc, T_value, T_loc, P_value, P_loc, K_loc, K_value,RR, PR, QT, HRV, tqrs, trr, tpr, tqt,ST] = ecg_extraction(data,fs)
 %This function is used to extract features of ECG
 %Input:
 %   data:   ECG signal
@@ -115,42 +114,46 @@ for i = 1:length(R_loc)
 
     % ====== S peak ======
     [S_value(i) S_loc(i)] = min(c(R_loc(i):right(i)) );
-    S_loc(i) = S_loc(i) + R_loc(i); % add offset
+    S_loc(i) = S_loc(i) + R_loc(i) - 1; % add offset
     
     % ====== J point ======
-    [J_value(i) J_loc(i)] = min(c(S_loc(i):right(i)) );
-    J_loc(i) = J_loc(i) + S_loc(i); % add offset
+    J_loc(i) = right(i);
+    J_value(i) = c(J_loc(i));
+    
+    % ====== K point ======
+    K_loc(i) = left(i);
+    K_value(i) = c(K_loc(i));
     
     % ====== QRS duration ====== 
     tqrs(i) = (right(i)-left(i))/Fs;
     
-%     if i ~= 1
-%         % ====== RR interval ====== 
-%         RR(i-1) = R_loc(i)-R_loc(i-1);
-%         trr(i-1) = RR(i-1)/Fs;
-%         
-%         % ====== BPM (vent rate) ====== 
-%         HRV(i-1) = 60/trr(i-1);
-% 
-%         % ====== T peak ====== 
-%         [T_value(i-1) T_loc(i-1)] = max(c(floor(R_loc(i-1)+(0.15*RR(i-1))):floor(R_loc(i-1)+(0.55*RR(i-1)))));
-%         T_loc(i-1) = T_loc(i-1)+ R_loc(i-1) + floor(0.15*RR(i-1)); % add offset
-% 
-%         % ====== P peak ====== 
-%         [P_value(i-1) P_loc(i-1)] = max(c(floor(left(i) - 0.15*RR(i-1)):Q_loc(i)));
-%         P_loc(i-1) = P_loc(i-1) + floor(left(i) - 0.15*RR(i-1)); % add offset
-%         
-%         % ====== PR interval ====== 
-%         PR(i-1) = R_loc(i) - P_loc(i-1);
-%         tpr(i-1) = PR(i-1)/Fs;
-%         
-%         % ====== QT interval ====== 
-%         QT(i-1) = (T_loc(i-1)+(trr(i-1)*0.13)-(Q_loc(i-1)-0.005*Fs));
-%         tqt(i-1) = QT(i-1)/Fs;
-%         tqt(i-1) = tqt(i-1)/(Fs*sqrt(trr(i-1)));
-%         
-%         % ====== ST interval ======
-%         ST(i-1) = T_loc(i-1) - S_loc(i-1);
+    if i ~= 1
+        % ====== RR interval ====== 
+        RR(i-1) = R_loc(i)-R_loc(i-1);
+        trr(i-1) = RR(i-1)/Fs;
+        
+        % ====== BPM (vent rate) ====== 
+        HRV(i-1) = 60/trr(i-1);
+
+        % ====== T peak ====== 
+        [T_value(i-1) T_loc(i-1)] = max(c(floor(R_loc(i-1)+(0.15*RR(i-1))):floor(R_loc(i-1)+(0.55*RR(i-1)))));
+        T_loc(i-1) = T_loc(i-1)+ R_loc(i-1) + floor(0.15*RR(i-1)); % add offset
+
+        % ====== P peak ====== 
+        [P_value(i-1) P_loc(i-1)] = max(c(floor(left(i) - 0.15*RR(i-1)):Q_loc(i)));
+        P_loc(i-1) = P_loc(i-1) + floor(left(i) - 0.15*RR(i-1)); % add offset
+        
+        % ====== PR interval ====== 
+        PR(i-1) = R_loc(i) - P_loc(i-1);
+        tpr(i-1) = PR(i-1)/Fs;
+        
+        % ====== QT interval ====== 
+        QT(i-1) = (T_loc(i-1)+(trr(i-1)*0.13)-(Q_loc(i-1)-0.005*Fs));
+        tqt(i-1) = QT(i-1)/Fs;
+        tqt(i-1) = tqt(i-1)/(Fs*sqrt(trr(i-1)));
+        
+        % ====== ST interval ======
+        ST(i-1) = T_loc(i-1) - S_loc(i-1);
     end   
 end
 

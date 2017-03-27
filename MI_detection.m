@@ -4,12 +4,21 @@ clear all; close all; clc
 data_path = 'E:\MY_THESIS\database\euro\';
 
 %% ====================== Calling arrhythmia records ======================
-recordings =    [103];%[103 104 105 106 112 113 118 121 129 133 136 139 154 161 162 163 170 105 108 112 115 123 129 133 147 154 104 112 118 122 154 161 612 801 808];
+recordings =    [105];%[103 104 105 106 112 113 118 121 129 133 136 139 154 161 162 163 170 105 108 112 115 123 129 133 147 154 104 112 118 122 154 161 612 801 808];
 leads =         [001];%[001 002 001 002 002 002 001 001 002 002 002 002 002 002 002 002 001 001 001 002 002 002 002 002 002 002 001 002 002 002 001 002 002 002 002];
-% 201(225.6) 202(149.4)
+
+% recordings =    [300];%[300 301 302 304 305 306 307 308 310 311 312 315 316 317 318 319 320 321 322 323 324 325 326 327];
+% leads =         [001];%[001 001 001 002 001 001 002 001 002 001 002 001 001 001 002 002 002 002 002 002 002 001 002 002];
+
+% recordings =    [16272];%[16272 16420 16483 16539 16773 16786 16795 17052 17453 18177 18184 19088 19090 19093 19140 19830];
+% leads =         [001];%[001];
 %% =========================== New parameters =============================
 mean_HRV_all = [];
 std_HRV_all = [];
+
+% counter1 = 0;
+% counter2 = 0;
+% counter3 = 0;
 
 %% ============================= Processing ===============================
 for record = 1:length(recordings)
@@ -18,30 +27,18 @@ for record = 1:length(recordings)
     T_value_all = [0]; T_loc_all = [];   % value and location of T peak
     S_value_all = []; S_loc_all = [];   % value and location of S peak
     J_value_all = [0]; J_loc_all = [];   % value and location of J peak
-    JTslope1 = [];
-    JTslope2 = [];
+
+    ST_segment_all = [];
+    mean_STS_all = [];
+    std_STS_all = [];
     
-    J_mean_all = [];
-    J_std_all = [];
-    
-    S_mean_all = [];
-    S_std_all = [];
-    STslope = [];
-    mean_STS = [];
-    mean_JTslope1 = [];
-    mean_JTslope2 = [];
-    JTslope_all1 = [];
-    JTslope_all2 = [];
-    
-    T_mean_all = [];
-    T_std_all = [];
+    PR_segment_all = [];
+    mean_PRS_all = [];
+    std_PRS_all = [];
 
     diagnosis = [];
-    
-    std_JTS1 = [];
-    std_JTslope1 = [];
-    std_JTS2 = [];
-    std_JTslope2 = [];
+    STD_all = [];
+    k = [];
         
     filename = ['e0' num2str(recordings(record))];
 
@@ -104,66 +101,102 @@ for record = 1:length(recordings)
     
     MI_peak = find((ANNOT == 18) | (ANNOT == 19))';
     m = 0;
+
     windowl = 5*fs;
     for i = 1:windowl:length(sig1)-windowl
-        data = sig1(i+1:i+windowl);
-%         
-        STslope = [];
-        JTslope1 = [];
-        JTslope2 = [];
+        data = sig1(i+1:i+windowl);   
+        
+        ST_segment = [];
+        PR_segment = [];
+        ST_deviation =[];
+        
+
         
         % ====== feature extraction ======
-        [c,R_value, R_loc, Q_value, Q_loc, S_value, S_loc, J_value, J_loc, T_value, T_loc, P_value, P_loc, RR, PR, QT, HRV, tqrs, trr, tpr, tqt,ST] = ecg_extraction(data,fs);
+        [c,R_value, R_loc, Q_value, Q_loc, S_value, S_loc, J_value, J_loc, T_value, T_loc, P_value, P_loc, K_loc, K_value, RR, PR, QT, HRV, tqrs, trr, tpr, tqt,ST] = ecg_extraction(data,fs);
         m = m + 1;
         
+        counter1 = 0;
+        counter2 = 0;
+        counter3 = 0;
+%         figure
+%         plot(t(1:length(c)),c)
+%         hold on
+%         plot(t(K_loc),K_value,'o',t(P_loc),P_value,'x');
+        % ====== PR segments ======
+        for j = 2:length(K_loc)
+            PK_loc = P_loc(j-1) : K_loc(j);
+            PK_value = c(P_loc(j-1) : K_loc(j));
+            PR_segment(end + 1) = mean(PK_value) /mean(PK_loc)*1000;
+        end
+        PR_segment_all = [PR_segment_all PR_segment];
+        mean_PRS = mean(PR_segment);
+        mean_PRS_all = [mean_PRS_all mean_PRS];
+        
+        std_PRS = std(PR_segment);
+        std_PRS_all = [std_PRS_all std_PRS];
+        
+        % ====== ST segments ======
         for j = 1:length(T_loc)
             JT_loc = J_loc(j) : T_loc(j);
             JT_value = c(J_loc(j) : T_loc(j));
-            JTslope1(end + 1) = mean(JT_value) /mean(JT_loc)*1000;
+            ST_segment(end + 1) = mean(JT_value) /mean(JT_loc)*1000;
         end
-        JTslope_all1 = [JTslope_all1 JTslope1];
-        mean_JTS1 = mean(JTslope1);
-        mean_JTslope1 = [mean_JTslope1 mean_JTS1];
+        ST_segment_all = [ST_segment_all ST_segment];
+        mean_STS = mean(ST_segment);
+        mean_STS_all = [mean_STS_all mean_STS];
         
-        std_JTS1 = std(JTslope1);
-        std_JTslope1 = [std_JTslope1 std_JTS1];
-%         if length(mean_JTslope1) >= 140 && length(mean_JTslope1) <= 160
-%            figure
-%            plot(c)
-%         end
-        
-        
-        for j = 1:length(T_loc)
-            JT_loc = J_loc(j) : T_loc(j);
-            JT_value = c(JT_loc);
-            JTslope2(end + 1) = mean(JT_value) /length(JT_loc)*1000;
-        end
-        JTslope_all2 = [JTslope_all2 JTslope2];
-        mean_JTS2 = mean(JTslope2);
-        mean_JTslope2 = [mean_JTslope2 mean_JTS2];
-        
-        std_JTS2 = std(JTslope2);
-        std_JTslope2 = [std_JTslope2 std_JTS2];
-        
-        sign = zeros(1,length(JTslope1));
-        if mean_JTS1 > 4
-            sign = ones(1,length(JTslope1));
-            sign(find(JTslope1 < 1)) = 0;
-            
-            diagnosis = [diagnosis 1];
-        else
-            diagnosis = [diagnosis 0];
-        end
-%         diagnosis = [diagnosis sign];
+        std_STS = std(ST_segment);
+        std_STS_all = [std_STS_all std_STS];
 
-%         ST_peak1 = find(mean_JTslope > 11 | mean_JTslope < -4);
-   
-%         if JT_value_mean < 10
+        
+        % ====== ST-deviation ======
+        for j = 1:length(ST_segment)
+            ST_deviation(end + 1) = abs(ST_segment(j) - PR_segment(j));
+        end
+        STD_all = [STD_all mean(ST_deviation)];
+        a = find(STD_all >= 1);
+%         if mean(ST_deviation) >= 1
+%             figure
+%             plot(t(1:length(c)),c)
+%             hold on
+%             plot(t(K_loc),K_value,'o',t(P_loc),P_value,'x');
+%             
+%             if k == 40
+%                 a = 1;
+%             else k = k+1;
+%             end
+%     end
+        % ====== detect MI ======
+        a = length (PR_segment);
+        b = length (ST_segment);
+
+        for j = 1:a
+        counter1=counter1+1;
+            if PR_segment(j) <= (ST_segment(j) + 0.17) && ...
+                    PR_segment(j) >= (ST_segment(j) - 0.17)
+               counter2=counter2+1;
+            else
+               counter3=counter3+1;
+
+            end
+        end
+
+        fprintf (1,'\nK> total number of signals evaluated is %d\n',counter1)
+        fprintf (1,'\nK> total number of signals without MI is %d\n',counter2)
+        fprintf (1,'\nK> total number of signals with MI is %d\n',counter3)
+        if counter3/counter1>=0.95
+            fprintf(1,'\nK>WARNING: MI\n');
 %             figure
 %             plot(t(1:length(c)),c);
-%             hold on
-%             plot(t(J_loc),J_value,'o',t(T_loc),T_value,'^');
-%         end
-    end
-    a = find(diagnosis == 1);
+%             pause(5)
+           k = [k m];
+        else
+            fprintf(1,'\nK>No MI\n');
+%             pause(1)
+        end 
+
+        clc
+        close all
+    end 
 end;
