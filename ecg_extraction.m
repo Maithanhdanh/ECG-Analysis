@@ -156,4 +156,3 @@ for i = 1:length(R_loc)
         ST(i-1) = T_loc(i-1) - S_loc(i-1);
     end   
 end
-
