@@ -101,7 +101,7 @@ for record = 1:length(recordings)
     
     MI_peak = find((ANNOT == 18) | (ANNOT == 19))';
     m = 0;
-
+    all_data = [];
     windowl = 5*fs;
     for i = 1:windowl:length(sig1)-windowl
         data = sig1(i+1:i+windowl);   
@@ -110,11 +110,13 @@ for record = 1:length(recordings)
         PR_segment = [];
         ST_deviation =[];
         
-
-        
         % ====== feature extraction ======
-        [c,R_value, R_loc, Q_value, Q_loc, S_value, S_loc, J_value, J_loc, T_value, T_loc, P_value, P_loc, K_loc, K_value, RR, PR, QT, HRV, tqrs, trr, tpr, tqt,ST] = ecg_extraction(data,fs);
+        [c,R_value, R_loc, Q_value, Q_loc, S_value, S_loc, J_value, J_loc, T_value, T_loc, P_value, P_loc, K_loc, K_value] = ecg_extraction(data,fs);
         m = m + 1;
+        all_data = [all_data c];
+        
+%         figure
+%         plot(t(1:length(all_data)),all_data)
         
         counter1 = 0;
         counter2 = 0;
@@ -149,24 +151,6 @@ for record = 1:length(recordings)
         std_STS = std(ST_segment);
         std_STS_all = [std_STS_all std_STS];
 
-        
-        % ====== ST-deviation ======
-        for j = 1:length(ST_segment)
-            ST_deviation(end + 1) = abs(ST_segment(j) - PR_segment(j));
-        end
-        STD_all = [STD_all mean(ST_deviation)];
-        a = find(STD_all >= 1);
-%         if mean(ST_deviation) >= 1
-%             figure
-%             plot(t(1:length(c)),c)
-%             hold on
-%             plot(t(K_loc),K_value,'o',t(P_loc),P_value,'x');
-%             
-%             if k == 40
-%                 a = 1;
-%             else k = k+1;
-%             end
-%     end
         % ====== detect MI ======
         a = length (PR_segment);
         b = length (ST_segment);
