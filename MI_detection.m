@@ -171,9 +171,12 @@ for record = 1:length(recordings)
         fprintf (1,'\nK> total number of signals with MI is %d\n',counter3)
         if counter3/counter1>=0.95
             fprintf(1,'\nK>WARNING: MI\n');
-            figure
-            plot(t(1:length(c)),c);
-            pause(5)
+%             figure
+%             plot(t(1:length(c)),c);
+%             pause(5)
+            h = msgbox('Myocardial Infarction','Warning','warn');
+            pause(0.0001)
+            delete(h)
            k = [k m];
         else
             fprintf(1,'\nK>No MI\n');
